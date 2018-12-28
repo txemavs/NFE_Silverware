@@ -1,6 +1,9 @@
+/**
+@file
+<b>Defines.</b>
 
-// defines for things that do not normally need changing
-
+Defines for things that do not normally need changing
+*/
 
 #define MOTOR_BL 0
 #define MOTOR_FL 1
@@ -18,7 +21,7 @@
 #define PITCH 1
 #define YAW 2
 
-// this should be precalculated by the compiler as it's a constant
+/// This should be precalculated by the compiler as it's a constant
 #define FILTERCALC( sampleperiod, filtertime) (1.0f - ( 6.0f*(float)sampleperiod) / ( 3.0f *(float)sampleperiod + (float)filtertime))
 
 
