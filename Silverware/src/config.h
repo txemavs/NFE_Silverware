@@ -137,10 +137,11 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 ///
 /// Leveling
 /// -------- 
-/// Switching on LEVELMODE is required for any leveling modes to be active.  
 /// - @ref LEVELMODE Leveling mode (AKA Angle, Stab).
 /// - @ref RACEMODE 
 /// - @ref HORIZON 
+///
+/// Switching on LEVELMODE is required for any leveling modes to be active.
 /// With LEVELMODE active - MCU will apply RACEMODE if racemode channel is on, 
 /// HORIZON if horizon channel is on, or RACEHORIZON if both channels are on,
 /// and will be standard LEVELMODE if neither racemode or horizon are switched on.
@@ -185,7 +186,7 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 
 //#define AUX1_START_ON
 
-/// Needs throttle off for 1 second
+// Needs throttle off for 1 second
 //#define STOCK_TX_AUTOCENTER
 
 /// @}
