@@ -34,11 +34,12 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// @{
 /// @name Flight controller hardware.
 /// @{
-/// Define only one board.
+
 /// - **BWHOOP**: for bwhoop, bwhoop pro, E011C Santa Edition, and Beta FPV Lite.
 /// - **E011**: for E011
 /// - **H8mini_blue_board**: for the H8 mini flight controller with blue circuit board
 /// - **Alienwhoop_ZERO**: set `RX_SBUS` @ref CONTROL protocol
+/// Define only one board:
 #define BWHOOP
 //#define E011
 //#define H8mini_blue_board
@@ -49,41 +50,39 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 
 /// @addtogroup FLIGHT
 /// @{
-/// @name Parameters
+
+/// 
+/// 
+/// Exponential from 0.00 to 1.00 , 0 = no exp
+/// positive: less sensitive near center.
+
+
+/// @name Acro mode
 /// @{
 #define MAX_RATE 720.0  ///< Rate for acro mode in deg/sec.
 #define MAX_RATEYAW 900.0 ///< Rate for acro mode in deg/sec.
-#define LEVEL_MAX_ANGLE 66.0f ///< max angle for level mode.
-/// @}
-
-/// @name Dual rates
-/// Low rates multiplier if @ref RATES are assigned to a channel.
-#define LOW_RATES_MULTI 0.70f
-
-
-
-
-/// @name Expo
-/// @{
-/// 
-/// Exponential
-/// 
-/// EXPO from 0.00 to 1.00 , 0 = no exp
-/// positive = less sensitive near center */
-
 #define ACRO_EXPO_ROLL 0.33 	///< Default 0.80
 #define ACRO_EXPO_PITCH 0.33 	///< Default 0.80
 #define ACRO_EXPO_YAW 0.00
+/// @}
 
+
+/// @name Level mode
+/// @{
 /// 
+/// 
+#define LEVEL_MAX_ANGLE 66.0f ///< max angle for level mode.
 #define ANGLE_EXPO_ROLL 0.00 ///< Default 0.55
 #define ANGLE_EXPO_PITCH 0.0 ///< Default 0.0
 #define ANGLE_EXPO_YAW 0.00
 
 /// @}
 
-/// Sticks dead band
-///
+/// @name Dual rates
+/// Low rates multiplier if @ref RATES are assigned to a channel.
+#define LOW_RATES_MULTI 0.70f
+
+/// @name Sticks dead band
 /// Transmitter stick adjustable deadband for roll/pitch/yaw.
 /// 01f = 1% of stick range - comment out to disable
 #define STICKS_DEADBAND .002f
@@ -91,8 +90,8 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 
 /// @addtogroup CONTROL
 /// @{
-/// @name Radio protocol selection.
-/// Define only one:
+/// @name Radio protocol.
+///
 /// - Alienwhoop_ZERO: 
 ///   + **RX_SBUS**
 /// - Spektrum: 
@@ -103,14 +102,18 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 ///  + **RX_BAYANG_PROTOCOL_BLE_BEACON**
 ///  + **RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND**
 ///  + **RX_BAYANG_BLE_APP**
+///
+/// Define only one:
 #define RX_BAYANG_BLE_APP
 
 
-/// @name Transmitter Type Selection
-/// Define only one remote controller type:
-/// - Toy transmitter: **USE_STOCK_TX**
+/// @name Transmitter
+///
+/// - **USE_STOCK_TX**: Toy transmitter.
 /// - Deviation: **USE_DEVO**
 /// - Multiprotocol: **USE_MULTI**
+///
+/// Define only one remote controller:
 #define USE_STOCK_TX
 
 
