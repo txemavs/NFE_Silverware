@@ -87,6 +87,7 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// 01f = 1% of stick range - comment out to disable
 #define STICKS_DEADBAND .002f
 /// @}
+/// @}
 
 /// @addtogroup CONTROL
 /// @{
