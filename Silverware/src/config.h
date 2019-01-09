@@ -14,7 +14,7 @@
 //#define BWHOOP
 //#define E011
 //#define H8mini_blue_board
-#define Alienwhoop_ZERO  // requires defining RX_SBUS radio protocol
+#define Alienwhoop_ZERO  
 
 
 
@@ -141,39 +141,60 @@
 //**********************************************************************************************************************
 //***********************************************FILTER SETTINGS********************************************************
 
-// *************Select the appropriate filtering set for your craft's gyro, D-term, and motor output or select CUSTOM_FILTERING to pick your own values.  
-// *************If your throttle does not want to drop crisply and quickly when you lower the throttle stick, then move to a stronger filter set
+// *************The following is the new "beta" testing filter set.  Taking lesson from betaflight ... it seems very effective to stack 1st order filters
+// *************and gives outstanding adjustability as you can stagger the first and second passes at different values as opposed to being constrained by
+// ************* a second order filter at a single cut frequency.  Sooooooooooooooooooo.... go test and see what you like.  I have not actually staggered my
+// ************* filters yet and the filters listed below are what I am flying on my whoop and the first configuration I have tested.  For my boss 7, I am changing both pass 1 and 2 to HZ_70, and  
+// ************* leaving the rest the same.  FYI, whoops seem to have one noise peak somewhere around 150 to 200hz and another one closer to 400 to 500hz.  
+// *************  What can you test to help you ask???  Well let me explain the code first - I attempted to write this so that if you only wanted to run one pass, 
+// *************  you could comment out either pass 1 or pass 2.  You should be able to select either gyro filter type too.  Get creative if you enjoy this stuff...
+// *************  maybe disable the motor output filter to introduce noise into the system, then start plying with the gyro filters to see if you can clean it up.
+// *************  just to see if both passes are functional.  Noise will be obvious by motors that dont want to throttle down immediately or at all.  Too much filtering will be obvious
+// ************* by propwash and eventually P oscillations if you really push it too far
+// *************  
+// *************  At this point I feel like this gyro filter configuration should throughly tested before moving forward to splitting the D term into two 1st order passes
+// *************  Lets try to see if my code is functional and if it is, try to tweak in the values on pass 1 and 2 for something that runs 6 and 7mm really clean.  Go slap on some bent
+// ************* props, or find some of those garbage off balance 3 blade abominations that the stock zero tune hates so much.  Lets see what we can make possible.
+// *************  Lets also see if in the end - can we say that this flies better than the stock filter setup.  Remember, tolerating more bent or bad props is great but
+// *************  only if it doesnt compromise the feel or performance we are used to.  Personally I think this feels better and handles better ... but I have only tested 716.
+// ************* Feel free to unselect BETA_FILTERING and return to ALIENWHOOP_ZERO_FILTERING here for comparison to stock.  I think/hope that this will work well enough that even the
+// ************* prefilled filter sets can be eventually abandoned in favor of one decent set of defaults that fly most everything very well
+// *************
+// *************  FINAL NOTE:  If you know anything about C++ ... for the love of God go check my work in the filter.cpp file.  I really don't know what I am doing and have avoided C++ like the plague.
+// *************  I am not even totally confident that I properly seperated pass 1 and 2 so that they dont step on each others toes.  Filtering functions are called from sixaxis.c in two places.  Thanks
+
+
 
 //#define WEAK_FILTERING
 //#define STRONG_FILTERING
 //#define VERY_STRONG_FILTERING
-//#define CUSTOM_FILTERING
-#define ALIENWHOOP_ZERO_FILTERING
+//#define ALIENWHOOP_ZERO_FILTERING
+#define BETA_FILTERING
 
+#ifdef BETA_FILTERING
 
-#ifdef CUSTOM_FILTERING
-// *************gyro low pass filter ( iir )
-// *************set only one below - kalman, 1st order, or second order - and adjust frequency
-//**************ABOVE 100 ADJUST IN INCRIMENTS OF 20, BELOW 100 ADJUST IN INCRIMENTS OF 10
-#define SOFT_KALMAN_GYRO KAL1_HZ_90
-//#define SOFT_LPF_1ST_HZ 80
-//#define SOFT_LPF_2ND_HZ 80
+//Select Gyro Filter Type *** Select Only One type
+#define KALMAN_GYRO
+//#define PT1_GYRO
 
-// *************D term low pass filter type - set only one below and adjust frequency if adjustable filter is used
-// *************1st order adjustable, second order adjustable, or 3rd order fixed (non adjustable)
-//#define DTERM_LPF_1ST_HZ 100
+//Select Gyro Filter Cut Frequency *** ABOVE 100 ADJUST IN INCRIMENTS OF 20, BELOW 100 ADJUST IN INCRIMENTS OF 10, nothing coded beyond 500hz
+#define GYRO_FILTER_PASS1 HZ_90
+#define GYRO_FILTER_PASS2 HZ_90
+
+//Select D Term Filter Cut Frequency
 #define  DTERM_LPF_2ND_HZ 100
 
-// *************enable motor output filter - select and adjust frequency
-#define MOTOR_FILTER2_ALPHA MFILT1_HZ_70
-//#define MOTOR_KAL KAL1_HZ_70
+//Select Motor Filter Type
+#define MOTOR_FILTER2_ALPHA MFILT1_HZ_90
+
 #endif
+
 
 
 //**********************************************************************************************************************
 //***********************************************MOTOR OUTPUT SETTINGS**************************************************
 
-// *************invert yaw pid for "PROPS OUT" configuration
+// *************invert yaw pid for "PROPS OUT" configuration - This feature is switchable to "PROPS IN" when active with stick gesture DOWN-UP-DOWN, Save selection with DOWN-DOWN-DOWN
 #define INVERT_YAW_PID
 
 // *************pwm frequency for motor control
@@ -295,7 +316,8 @@
 #endif
 
 #ifdef ALIENWHOOP_ZERO_FILTERING
-#define SOFT_KALMAN_GYRO KAL1_HZ_90
+#define KALMAN_GYRO
+#define GYRO_FILTER_PASS1 HZ_90
 #define  DTERM_LPF_2ND_HZ 100
 #define MOTOR_FILTER2_ALPHA MFILT1_HZ_50
 #define SWITCHABLE_MOTOR_FILTER2_ALPHA MFILT1_HZ_90
@@ -303,19 +325,22 @@
 #endif
 
 #ifdef WEAK_FILTERING
-#define SOFT_KALMAN_GYRO KAL1_HZ_90
+#define KALMAN_GYRO
+#define GYRO_FILTER_PASS1 HZ_90
 #define  DTERM_LPF_2ND_HZ 100
 #define MOTOR_FILTER2_ALPHA MFILT1_HZ_90
 #endif
 
 #ifdef STRONG_FILTERING
-#define SOFT_KALMAN_GYRO KAL1_HZ_80
+#define KALMAN_GYRO
+#define GYRO_FILTER_PASS1 HZ_80
 #define  DTERM_LPF_2ND_HZ 90
 #define MOTOR_FILTER2_ALPHA MFILT1_HZ_80
 #endif
 
 #ifdef VERY_STRONG_FILTERING
-#define SOFT_KALMAN_GYRO KAL1_HZ_70
+#define KALMAN_GYRO
+#define GYRO_FILTER_PASS1 HZ_70
 #define  DTERM_LPF_2ND_HZ 80
 #define MOTOR_FILTER2_ALPHA MFILT1_HZ_70
 #endif
