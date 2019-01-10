@@ -3,7 +3,7 @@
 <b>PID Profiles.</b>
 
 @defgroup PID PID Profiles
-@ingroup CONFIG	
+@ingroup FLIGHT	
 @{
 
 @brief Advanced PID controller.

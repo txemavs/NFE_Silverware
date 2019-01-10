@@ -10,25 +10,26 @@ Silverware fork specially designed for Whoop style quads.
 
 Configuration
 -------------
- - @ref CONFIG "Configuration"
-   + @ref BOARD "Hardware selection."
-   + @ref CONTROL "Remote Control."
-   + @ref FLIGHT "Flight mode."
- - @ref PID "PID Profiles"
- - @ref ADVANCED "Advanced settings" 
- - @ref config.h "Configuration file"
+ See @ref CONFIG "Configuration page"
+ - @ref HARDWARE "Harware."
+ - @ref FLIGHT "Flight."
+  +  @ref FILTER "Filtering"
+  +  @ref PID "PID Profiles"
+ - @ref CONTROL "Control."
+ - @ref OPTIONS "Options" 
+  +  @ref VOLTAGE "Battery"
+  +  @ref ADVANCED "Advanced"
+  +  @ref MOTOR "Motors"
+
+
 
 Start points
 ------------
  - @ref main "Main loop execution."
- - @ref control.h
+ - @ref control
+ - @ref config.h "Configuration file"
  - @ref sixaxis.h
- - @ref rx.h
- - @ref util.h
- - @ref led.h
  - @ref gestures.h
- - @ref defines.h
- - @ref buzzer.h
 
 Features
 --------
@@ -48,6 +49,8 @@ Features
 @see <a href='http://sirdomsen.diskstation.me/dokuwiki/doku.php'>Silverware Wiki</a> and 
 <a href='https://community.micro-motor-warehouse.com/t/notfastenuf-e011-bwhoop-silverware-fork/5501'>NotFastEnuf fork thread</a>
 
+@defgroup MAIN Main loop
+@{
 */
 
 /*
@@ -706,5 +709,6 @@ void EXTI4_15_IRQHandler(void)
 }
 #endif
 
+///@}
 
 

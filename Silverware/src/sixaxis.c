@@ -1,3 +1,10 @@
+/**
+@file
+<b>Gyro.</b>
+
+@defgroup GYRO Six Axis
+@{
+*/
 /*
 The MIT License (MIT)
 
@@ -514,7 +521,7 @@ void acc_cal(void)
 
 
 
-
+/// @}
 
 
 
