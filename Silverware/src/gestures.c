@@ -1,3 +1,10 @@
+/**
+@file
+<b>Gestures.</b>
+
+@defgroup GESTURES Gestures
+@{
+*/
 #include "gestures.h"
 #include "sixaxis.h"
 #include "drv_time.h"
@@ -144,3 +151,4 @@ void gestures( void)
 		#endif		
  }
 
+/// @}
