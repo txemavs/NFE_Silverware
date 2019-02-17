@@ -176,9 +176,10 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #define RACEMODE  	CHAN_OFF
 */
 #define PIDPROFILE 	CHAN_5
+#define RATES 			CHAN_6
 #define IDLE_UP 		CHAN_7
 #define LEVELMODE 	CHAN_8
-#define RATES 			CHAN_9	
+#define LEDS_ON 		CHAN_9
 #define HORIZON   	CHAN_OFF
 #define RACEMODE  	CHAN_OFF
 
@@ -377,7 +378,7 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// - Entering **RRD** gesture will disable throttle and will rapid blink the led 
 ///   when sticks are moved to 100% throws
 /// - Entering **LLD** will return the quad to normal operation.
-#define STICK_TRAVEL_CHECK
+//#define STICK_TRAVEL_CHECK
 /// @}
 
 
