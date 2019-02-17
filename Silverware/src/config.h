@@ -60,10 +60,10 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// @name Acro mode
 /// @{
 #define MAX_RATE 720.0  ///< Rate for acro mode in deg/sec.
-#define MAX_RATEYAW 900.0 ///< Rate for acro mode in deg/sec.
-#define ACRO_EXPO_ROLL 0.00 	///< Default 0.80
-#define ACRO_EXPO_PITCH 0.00 	///< Default 0.80
-#define ACRO_EXPO_YAW 0.00
+#define MAX_RATEYAW 720.0 ///< Rate for acro mode in deg/sec.
+#define ACRO_EXPO_ROLL 0.25 	///< Default 0.80
+#define ACRO_EXPO_PITCH 0.25 	///< Default 0.80
+#define ACRO_EXPO_YAW 0.25
 /// @}
 
 
@@ -74,7 +74,7 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #define LEVEL_MAX_ANGLE 66.0f ///< max angle for level mode.
 #define ANGLE_EXPO_ROLL 0.00 ///< Default 0.55
 #define ANGLE_EXPO_PITCH 0.0 ///< Default 0.0
-#define ANGLE_EXPO_YAW 0.00
+#define ANGLE_EXPO_YAW 0.25
 
 /// @}
 
@@ -114,7 +114,7 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// - Multiprotocol: **USE_MULTI**
 ///
 /// Define only one remote controller:
-#define USE_MULTI
+#define USE_STOCK_TX
 
 
 /// @name Switch settings
@@ -166,12 +166,20 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 ///
 
 //#define ARMING CHAN_5	
+/*
 #define PIDPROFILE 	CHAN_5
 #define LEDS_ON 		CHAN_6
 #define IDLE_UP 		CHAN_7
 #define RATES 			CHAN_8	
 #define LEVELMODE 	CHAN_9
 #define HORIZON   	CHAN_10
+#define RACEMODE  	CHAN_OFF
+*/
+#define PIDPROFILE 	CHAN_5
+#define IDLE_UP 		CHAN_7
+#define LEVELMODE 	CHAN_8
+#define RATES 			CHAN_9	
+#define HORIZON   	CHAN_OFF
 #define RACEMODE  	CHAN_OFF
 
 //#define FPV_ON CHAN_ON

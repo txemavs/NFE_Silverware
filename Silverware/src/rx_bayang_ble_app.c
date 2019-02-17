@@ -127,7 +127,7 @@ THE SOFTWARE.
 
 // this allows different quads to show up at the same time.
 // 0 - 255 select a different number for each quad if you need several simultaneous
-#define BLE_QUAD_NUMBER 17
+#define BLE_QUAD_NUMBER 128
 
 
 // optimized one channel only (bluetooth)
