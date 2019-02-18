@@ -1,7 +1,7 @@
 output/
 Objects/
-docs/html
-docs/latex
+docs/html/
+docs/latex/
 
 *.dep
 *.bak
