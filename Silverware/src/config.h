@@ -79,7 +79,7 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// @{
 /// 
 /// 
-
+#define LEVEL_MAX_RATE 230.0    //Roll & Pitch axis
 #define LEVEL_MAX_ANGLE 66.0f ///< max angle for level mode.
 #define ANGLE_EXPO_ROLL 0.00 ///< Default 0.55
 #define ANGLE_EXPO_PITCH 0.0 ///< Default 0.0

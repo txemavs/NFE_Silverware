@@ -1,6 +1,6 @@
 output/
 Objects/
-Silverware/silverware.uv*
+Silverware/silverware.*
 docs/html/
 docs/latex/
 
@@ -55,3 +55,6 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+Silverware/silverware.uvprojx
+Silverware/silverware.uvoptx
+Silverware/silverware.uvguix.txema
