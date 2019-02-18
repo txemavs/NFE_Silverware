@@ -9,9 +9,6 @@
   #define SOFT_LPF2_NONE
 #endif
 
-#if defined SOFT_LPF1_NONE && defined SOFT_LPF2_NONE
-	#define SOFT_LPF_NONE
-#endif
 
 #if defined PT1_GYRO && defined GYRO_FILTER_PASS1
 	#define SOFT_LPF_1ST_PASS1 GYRO_FILTER_PASS1

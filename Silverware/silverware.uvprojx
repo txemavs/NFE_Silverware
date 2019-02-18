@@ -616,6 +616,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\rx_dsm.c</FilePath>
             </File>
+            <File>
+              <FileName>rx_crsf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\rx_crsf.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

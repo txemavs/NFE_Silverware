@@ -271,10 +271,14 @@ gyronew[2] = - gyronew[2];
 	  {
 		  gyronew[i] = gyronew[i] * 0.061035156f * 0.017453292f;
 #ifndef SOFT_LPF_NONE
-		  gyro[i] = lpffilter(gyronew[i], i);
 			
 		#if defined (GYRO_FILTER_PASS2) && defined (GYRO_FILTER_PASS1)
+			gyro[i] = lpffilter(gyronew[i], i);
 			gyro[i] = lpffilter2(gyro[i], i);
+		#endif
+			
+		#if defined (GYRO_FILTER_PASS1) && !defined(GYRO_FILTER_PASS2)
+			gyro[i] = lpffilter(gyronew[i], i);
 		#endif
 			
 		#if defined (GYRO_FILTER_PASS2) && !defined(GYRO_FILTER_PASS1)
@@ -369,10 +373,14 @@ for (int i = 0; i < 3; i++)
 	  {
 		  gyronew[i] = gyronew[i] * 0.061035156f * 0.017453292f;
 #ifndef SOFT_LPF_NONE
-		  gyro[i] = lpffilter(gyronew[i], i);
 			
 		#if defined (GYRO_FILTER_PASS2) && defined (GYRO_FILTER_PASS1)
+			gyro[i] = lpffilter(gyronew[i], i);
 			gyro[i] = lpffilter2(gyro[i], i);
+		#endif
+			
+		#if defined (GYRO_FILTER_PASS1) && !defined(GYRO_FILTER_PASS2)
+			gyro[i] = lpffilter(gyronew[i], i);
 		#endif
 			
 		#if defined (GYRO_FILTER_PASS2) && !defined(GYRO_FILTER_PASS1)

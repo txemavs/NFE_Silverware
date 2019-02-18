@@ -48,6 +48,11 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// @}
 
 
+/// Select your preffered rate calculation format (define only one)
+#define SILVERWARE_RATES
+//#define BETAFLIGHT_RATES
+
+
 /// @addtogroup FLIGHT
 /// @{
 
@@ -56,6 +61,9 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// Exponential from 0.00 to 1.00 , 0 = no exp
 /// positive: less sensitive near center.
 
+
+
+#ifdef SILVERWARE_RATES
 
 /// @name Acro mode
 /// @{
@@ -71,10 +79,25 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// @{
 /// 
 /// 
+
 #define LEVEL_MAX_ANGLE 66.0f ///< max angle for level mode.
 #define ANGLE_EXPO_ROLL 0.00 ///< Default 0.55
 #define ANGLE_EXPO_PITCH 0.0 ///< Default 0.0
 #define ANGLE_EXPO_YAW 0.00
+
+#endif
+
+#ifdef BETAFLIGHT_RATES
+#define BF_RC_RATE_ROLL 1.00
+#define BF_RC_RATE_PITCH 1.00
+#define BF_RC_RATE_YAW 1.00
+#define BF_SUPER_RATE_ROLL 0.70
+#define BF_SUPER_RATE_PITCH 0.70
+#define BF_SUPER_RATE_YAW 0.70
+#define BF_EXPO_ROLL 0.00
+#define BF_EXPO_PITCH 0.00
+#define BF_EXPO_YAW 0.00
+#endif
 
 /// @}
 
@@ -252,44 +275,70 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 
 //**********************************************************************************************************************
 //***********************************************FILTER SETTINGS********************************************************
+
 /// @addtogroup FILTER
 /// @{
 // *************Select the appropriate filtering set for your craft's gyro, D-term, and motor output or select CUSTOM_FILTERING to pick your own values.  
 // *************If your throttle does not want to drop crisply and quickly when you lower the throttle stick, then move to a stronger filter set
 
+// *************The following is the new "beta" testing filter set.  Taking lesson from betaflight ... it seems very effective to stack 1st order filters
+// *************and gives outstanding adjustability as you can stagger the first and second passes at different values as opposed to being constrained by
+// ************* a second order filter at a single cut frequency.  Go test and see what you like, and report back if you feel so inclined.  I have not actually staggered my
+// ************* filters yet and the filters listed below are what I am flying on my whoop so far.  For my boss 7, I am changing both pass 1 and 2 to HZ_70, and  
+// ************* setting the D 2nd filter to 120hz.  FYI, whoops seem to have one noise peak somewhere around 150 to 200hz and another one closer to 400 to 500hz.  
+// *************  For my brushless 4" I am running one gyro pass at 90hz, the second gyro pass at 140hz, and the 1st order D filter at 70hz. On all of these crafts I have
+// *************  been able to totally eliminate the need for any motor output filtering.  It will remain in the code as an available option for now, but I hope to be able to remove
+// *************  it completely from the code soon if testing continues to go well.  My thoughts on motor output filtering are here https://community.micro-motor-warehouse.com/t/notfastenuf-e011-bwhoop-silverware-fork/5501/1388?u=notfastenuf
+// *************  To adjust your filters if you so desire - use these basic observations I have made:  Noise will be obvious by motors that dont want to throttle down immediately or at all.  Too much filtering will be obvious
+// ************* by propwash and eventually P oscillations if you really push it too far
+// *************  
+// *************  At this point I feel very optimistic about this gyro filter configuration. I hope we can all work together to establish the best whoop defaults possible.
+// *************  If you want to help, try to tweak in the values on pass 1 and 2 for something that runs 6 and 7mm really clean.  Go slap on some bent
+// ************* props, or find some of those garbage off balance 3 blade abominations that the stock zero tune hates so much.  Lets see what we can make possible and find the limits.
+// *************  Lets also see if in the end - can we say that this flies better than the previous stock filter setup.  Remember, tolerating more bent or bad props is great but
+// *************  only if it doesnt compromise the feel or performance we are used to when the equipment is good.  Personally I think this already feels better and handles better ... but I have only just begun exploring different filtering values.
+// ************* Feel free to unselect BETA_FILTERING and return to ALIENWHOOP_ZERO_FILTERING here for comparison to stock.  I think/hope that this will work well enough that even the
+// ************* prefilled filter sets can be eventually abandoned in favor of one decent set of defaults that fly most everything very well
+// *************
+// *************  FINAL NOTE: If you want to try running only one gyro pass, you can comment out either pass one or pass two.  Next revision will have split 1st order D term filter 
+// *************  passes just like the gyro in place of 2nd order filtering.      Thanks - NFE
+
 //#define WEAK_FILTERING
 //#define STRONG_FILTERING
 //#define VERY_STRONG_FILTERING
-//#define CUSTOM_FILTERING
+//#define BETA_FILTERING
 #define ALIENWHOOP_ZERO_FILTERING
 
+#ifdef BETA_FILTERING  //*** ABOVE 100 ADJUST IN INCRIMENTS OF 20, BELOW 100 ADJUST IN INCRIMENTS OF 10, nothing coded beyond 500hz
+
+//Select Gyro Filter Type *** Select Only One type
+#define KALMAN_GYRO
+//#define PT1_GYRO
 
 
-#ifdef CUSTOM_FILTERING
-// *************gyro low pass filter ( iir )
-// *************set only one below - kalman, 1st order, or second order - and adjust frequency
-//**************ABOVE 100 ADJUST IN INCRIMENTS OF 20, BELOW 100 ADJUST IN INCRIMENTS OF 10
-#define SOFT_KALMAN_GYRO KAL1_HZ_90
-//#define SOFT_LPF_1ST_HZ 80
-//#define SOFT_LPF_2ND_HZ 80
+//Select Gyro Filter Cut Frequency
+#define GYRO_FILTER_PASS1 HZ_90
+#define GYRO_FILTER_PASS2 HZ_90
 
-// *************D term low pass filter type - set only one below and adjust frequency if adjustable filter is used
-// *************1st order adjustable, second order adjustable, or 3rd order fixed (non adjustable)
-//#define DTERM_LPF_1ST_HZ 100
+//Select D Term Filter Cut Frequency *** Select Only one
 #define  DTERM_LPF_2ND_HZ 100
+//#define DTERM_LPF_1ST_HZ 70
 
-// *************enable motor output filter - select and adjust frequency
-#define MOTOR_FILTER2_ALPHA MFILT1_HZ_70
-//#define MOTOR_KAL KAL1_HZ_70
+//Select Motor Filter Type  (I am no longer using this)
+//#define MOTOR_FILTER2_ALPHA MFILT1_HZ_90
+
 #endif
 /// @}
 
+
 //**********************************************************************************************************************
 //***********************************************MOTOR OUTPUT SETTINGS**************************************************
+
 /// @addtogroup MOTOR
 /// @{
-// *************invert yaw pid for "PROPS OUT" configuration
+// *************invert yaw pid for "PROPS OUT" configuration - This feature is switchable to "PROPS IN" when active with stick gesture DOWN-UP-DOWN, Save selection with DOWN-DOWN-DOWN
 //#define INVERT_YAW_PID
+
 
 ///PWM frequency for motor control. A higher frequency makes the motors more linear (in Hz).
 #define PWMFREQ 32000
@@ -303,7 +352,7 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 // *************is very noise sensative so D term specifically has to be lowered and gyro/d filtering may need to be increased.
 // *************reccomendation right now is to leave boost at or below 2, drop your p gains a few points, then cut your D in half and 
 // *************retune it back up to where it feels good.  I'm finding about 60 to 65% of my previous D value seems to work.
-//#define TORQUE_BOOST 0.5
+//#define TORQUE_BOOST 1.0
 
 // *************makes throttle feel more poppy - can intensify small throttle imbalances visible in FPV if factor is set too high
 //#define THROTTLE_TRANSIENT_COMPENSATION 
@@ -341,11 +390,10 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// Power for telemetry from 0 to 7.
 #define TX_POWER 7
 
-// *************Flash saving features
-//#define DISABLE_GESTURES2
 
 /// Solid lights only brightness in-flight (range 0 - 15)
 #define LED_BRIGHTNESS 12
+
 
 ///Comment out to disable pid tuning gestures
 ///@name PID options
@@ -396,13 +444,12 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #define TRIM_PITCH 0.0
 #define TRIM_ROLL 0.0
 
-// max rate used by level pid ( limit )
-#define LEVEL_MAX_RATE 230
-
 // limit minimum motor output to a value (0.0 - 1.0)
 #define MOTOR_MIN_ENABLE
 #define MOTOR_MIN_VALUE 0.05
 
+// flash saving features
+//#define DISABLE_GESTURES2
 
 #ifdef LVC_LOWER_THROTTLE
 #define SWITCHABLE_FEATURE_2
@@ -413,7 +460,8 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #endif
 
 #ifdef ALIENWHOOP_ZERO_FILTERING
-#define SOFT_KALMAN_GYRO KAL1_HZ_90
+#define KALMAN_GYRO
+#define GYRO_FILTER_PASS1 HZ_90
 #define  DTERM_LPF_2ND_HZ 100
 #define MOTOR_FILTER2_ALPHA MFILT1_HZ_50
 #define SWITCHABLE_MOTOR_FILTER2_ALPHA MFILT1_HZ_90
@@ -421,21 +469,30 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #endif
 
 #ifdef WEAK_FILTERING
-#define SOFT_KALMAN_GYRO KAL1_HZ_90
+#define KALMAN_GYRO
+#define GYRO_FILTER_PASS1 HZ_90
 #define  DTERM_LPF_2ND_HZ 100
 #define MOTOR_FILTER2_ALPHA MFILT1_HZ_90
 #endif
 
 #ifdef STRONG_FILTERING
-#define SOFT_KALMAN_GYRO KAL1_HZ_80
+#define KALMAN_GYRO
+#define GYRO_FILTER_PASS1 HZ_80
 #define  DTERM_LPF_2ND_HZ 90
 #define MOTOR_FILTER2_ALPHA MFILT1_HZ_80
 #endif
 
 #ifdef VERY_STRONG_FILTERING
-#define SOFT_KALMAN_GYRO KAL1_HZ_70
+#define KALMAN_GYRO
+#define GYRO_FILTER_PASS1 HZ_70
 #define  DTERM_LPF_2ND_HZ 80
 #define MOTOR_FILTER2_ALPHA MFILT1_HZ_70
+#endif
+
+#ifdef BETA_FILTERING
+	#if (!defined(KALMAN_GYRO) && !defined(PT1_GYRO)) || (!defined(GYRO_FILTER_PASS1) && !defined(GYRO_FILTER_PASS2))
+		#define SOFT_LPF_NONE
+	#endif
 #endif
 
 #define GYRO_LOW_PASS_FILTER 0
@@ -534,7 +591,7 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #define SENSOR_ROTATE_90_CW
 
 // SPI PINS DEFINITONS & RADIO
-#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
+#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_CRSF)
 #define SERIAL_RX_SPEKBIND_BINDTOOL_PIN GPIO_Pin_3
 #define SERIAL_RX_PIN GPIO_Pin_14
 #define SERIAL_RX_PORT GPIOA
@@ -599,7 +656,7 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #define SOFTI2C_PUSHPULL_CLK
 
 // SPI PINS DEFINITONS & RADIO
-#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
+#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_CRSF) 
 #define SERIAL_RX_SPEKBIND_BINDTOOL_PIN GPIO_Pin_3
 #define SERIAL_RX_PIN GPIO_Pin_14
 #define SERIAL_RX_PORT GPIOA
@@ -662,7 +719,7 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #define SENSOR_ROTATE_180
 
 // SPI PINS DEFINITONS & RADIO
-#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
+#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_CRSF) 
 #define SERIAL_RX_SPEKBIND_BINDTOOL_PIN GPIO_Pin_3
 #define SERIAL_RX_PIN GPIO_Pin_14
 #define SERIAL_RX_PORT GPIOA
@@ -725,7 +782,7 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #define SENSOR_ROTATE_90_CCW
 
 // SPI PINS DEFINITONS & RADIO
-#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
+#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_CRSF) 
 #define SERIAL_RX_SPEKBIND_BINDTOOL_PIN GPIO_Pin_2
 #define SERIAL_RX_SPEKBIND_RX_PIN GPIO_Pin_3
 #define SERIAL_RX_PIN GPIO_Pin_3
@@ -770,6 +827,7 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #define MOTOR2_PIN_PA4
 #define MOTOR3_PIN_PA6
 #endif
+
 
 //**********************************************************************************************************************
 //***********************************************BETA TESTING ON STICK GESTURE******************************************

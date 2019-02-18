@@ -118,10 +118,10 @@ float pidki[PIDNUMBER] = { 14e-1  , 15e-1 , 15e-1 };
 float pidkd[PIDNUMBER] = { 7.4e-1 , 7.4e-1  , 5.5e-1 };
 
 
-//BOSS 7 with 716 motors and 46mm Props - set filtering to BETA_FILTERING and adjust pass 1 and pass 2 for KALMAN_GYRO both to 70hz, 
-//                                        set TORQUE_BOOST to 1.0, and add #define THROTTLE_TRANSIENT_COMPENSATION and #define THROTTLE_TRANSIENT_COMPENSATION_FACTOR 7.0
+//BOSS 7 with 716 motors and 46mm Props - set filtering to BETA_FILTERING and adjust pass 1 and pass 2 for KALMAN_GYRO both to 70hz, set DTERM_LPF_2ND_HZ to 120hz, disable motor filtering
+//                                        set TORQUE_BOOST to 1.0, and add #define THROTTLE_TRANSIENT_COMPENSATION and #define THROTTLE_TRANSIENT_COMPENSATION_FACTOR 4.0
 //                         ROLL       PITCH     YAW
-//float pidkp[PIDNUMBER] = { 24.5e-2 , 24.5e-2  , 9.5e-1 }; 
+//float pidkp[PIDNUMBER] = { 19.5e-2 , 19.5e-2  , 9.5e-1 }; 
 //float pidki[PIDNUMBER] = { 12e-1  , 12e-1 , 8e-1 };	
 //float pidkd[PIDNUMBER] = {10.7e-1 , 10.7e-1  , 2.0e-1 };	
 
