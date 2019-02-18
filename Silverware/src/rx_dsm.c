@@ -31,6 +31,7 @@ int rx_bind_enable = 0;
 
 // internal dsm variables
 
+#define DSM_SCALE_PERCENT 150												//adjust this line to match the stick scaling % set in your transmitter
 #define SERIAL_BAUDRATE 115200
 #define SPEK_FRAME_SIZE 16   
 #define SPEKTRUM_NEEDED_FRAME_INTERVAL  5000
@@ -62,7 +63,8 @@ int rx_frame_pending;
 int rx_frame_pending_last;
 uint32_t flagged_time;
 static volatile uint8_t spekFrame[SPEK_FRAME_SIZE];
-
+float dsm2_scalefactor = (0.29354210f/DSM_SCALE_PERCENT);
+float dsmx_scalefactor = (0.14662756f/DSM_SCALE_PERCENT);
 
 // Receive ISR callback
 void USART1_IRQHandler(void)
@@ -235,25 +237,27 @@ spektrumFrameStatus();
 if (rx_frame_pending != rx_frame_pending_last) flagged_time = gettime();  		//updates flag to current time only on changes of losing a frame or getting one back
 if (gettime() - flagged_time > FAILSAFETIME) framestarted = 0;            		//watchdog if more than 1 sec passes without a frame causes failsafe
 		
-         
+        
 if ( framestarted == 1){
 				if ((bind_safety < 900) && (bind_safety > 0)) rxmode = RXMODE_BIND;																								// normal rx mode - removes waiting for bind led leaving failsafe flashes as data starts to come in
 		   
-      // AETR channel order
-	#ifdef RX_DSMX_2048
-        rx[0] = (channels[1]*0.000998005f)-1.02195767f;  
-        rx[1] = (channels[2]*0.000998005f)-1.02195767f; 
-        rx[2] = (channels[3]*0.000998005f)-1.02195767f;
-        rx[3] = (channels[0]*0.0004990025f)-0.0109780552f;
+      // TAER channel order
+	#ifdef RX_DSMX_2048																												
+	      rx[0] = (channels[1] - 1024.0f) * dsmx_scalefactor;
+        rx[1] = (channels[2] - 1024.0f) * dsmx_scalefactor;
+        rx[2] = (channels[3] - 1024.0f) * dsmx_scalefactor;
+        rx[3] =((channels[0] - 1024.0f) * dsmx_scalefactor * 0.5f) + 0.5f;
+
 				if ( rx[3] > 1 ) rx[3] = 1;	
 				if ( rx[3] < 0 ) rx[3] = 0;
 	#endif
 
 	#ifdef RX_DSM2_1024
-        rx[0] = (channels[1]*0.00199601f)-1.02195767f;  
-        rx[1] = (channels[2]*0.00199601f)-1.02195767f; 
-        rx[2] = (channels[3]*0.00199601f)-1.02195767f;
-        rx[3] = (channels[0]*0.000998005f)-0.0109780552f;
+        rx[0] = (channels[1] - 512.0f) * dsm2_scalefactor;
+        rx[1] = (channels[2] - 512.0f) * dsm2_scalefactor;
+        rx[2] = (channels[3] - 512.0f) * dsm2_scalefactor;	
+        rx[3] =((channels[0] - 512.0f) * dsm2_scalefactor * 0.5f) + 0.5f;
+
 				if ( rx[3] > 1 ) rx[3] = 1;	
 				if ( rx[3] < 0 ) rx[3] = 0;
 	#endif
@@ -305,18 +309,4 @@ if ( framestarted == 1){
 	}
 }	
 	#endif
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
