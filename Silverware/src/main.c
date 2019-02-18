@@ -1,3 +1,58 @@
+/** 
+@file
+<b>STM32 acro firmware.</b>
+ 
+@mainpage 
+ 
+FC Firmware
+===========
+Silverware fork specially designed for Whoop style quads.
+
+Configuration
+-------------
+ See @ref CONFIG "Configuration page"
+ - @ref HARDWARE "Harware."
+ - @ref FLIGHT "Flight."
+  +  @ref FILTER "Filtering"
+  +  @ref PID "PID Profiles"
+ - @ref CONTROL "Control."
+ - @ref OPTIONS "Options" 
+  +  @ref VOLTAGE "Battery"
+  +  @ref ADVANCED "Advanced"
+  +  @ref MOTOR "Motors"
+
+
+
+Start points
+------------
+ - @ref main "Main loop execution."
+ - @ref control
+ - @ref config.h "Configuration file"
+ - @ref sixaxis.h
+ - @ref gestures.h
+
+Features
+--------
+ - Acro mode and level mode
+ - Auto-Bind feature.
+ - PIDs tunable and storable via TX gestures
+ - Telemetry via Bluetooth using SilverVISE
+ - Telemetry using DEVO, Taranis and Bayang Telemetry Protocol
+ - Well suitable for custom builds.
+ - Switchable output to switch 'something' on and off during flight via TX (e.g. FPV gear)
+ - Buzzer support for lost quad detection
+ - Altitude Hold support.
+ - Inverted flight capabilities
+ 
+@note Files of this project should be assumed MIT licence unless otherwise noted.
+
+@see <a href='http://sirdomsen.diskstation.me/dokuwiki/doku.php'>Silverware Wiki</a> and 
+<a href='https://community.micro-motor-warehouse.com/t/notfastenuf-e011-bwhoop-silverware-fork/5501'>NotFastEnuf fork thread</a>
+
+@defgroup MAIN Main loop
+@{
+*/
+
 /*
 The MIT License (MIT)
 
@@ -23,8 +78,6 @@ THE SOFTWARE.
 */
 
 
-// STM32 acro firmware
-// files of this project should be assumed MIT licence unless otherwise noted
 
 
 #include "project.h"
@@ -57,6 +110,7 @@ THE SOFTWARE.
 #include <math.h>
 #include <inttypes.h>
 
+
 #ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
 #include "drv_softserial.h"
 #include "serial_4way.h"
@@ -85,14 +139,15 @@ extern void flash_load( void);
 extern void flash_hard_coded_pid_identifier(void);
 
 
-// looptime in seconds
+/// Looptime in seconds.
 float looptime;
-// filtered battery in volts
-float vbattfilt = 0.0;
+/// Filtered battery in volts.
+float vbattfilt = 0.0; 
+/// Full battery volts.
 float vbatt_comp = 4.2;
-// voltage reference for vcc compensation
+/// Voltage reference for vcc compensation.
 float vreffilt = 1.0;
-// average of all motors
+/// Average of all motors.
 float thrfilt = 0;
 
 unsigned int lastlooptime;
@@ -101,14 +156,14 @@ int lowbatt = 1;
 
 //int minindex = 0;
 
-// holds the main four channels, roll, pitch , yaw , throttle
+/// Holds the main four channels, roll, pitch , yaw , throttle
 float rx[4];
 
-// holds auxilliary channels
-// the last 2 are always on and off respectively
+/// Holds auxilliary channels.
+/// The last 2 are always on and off respectively.
 char aux[AUXNUMBER] = { 0 ,0 ,0 , 0 , 0 , 0};
 char lastaux[AUXNUMBER];
-// if an aux channel has just changed
+/// If an aux channel has just changed
 char auxchange[AUXNUMBER];
 
 // bind / normal rx mode
@@ -139,6 +194,7 @@ static void setup_4way_external_interrupt(void);
 #endif									   
 int random_seed = 0;
 
+/// Execution.
 int main(void)
 {
 	
@@ -657,5 +713,6 @@ void EXTI4_15_IRQHandler(void)
 }
 #endif
 
+///@}
 
 

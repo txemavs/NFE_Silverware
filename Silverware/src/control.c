@@ -1,3 +1,10 @@
+/**
+@file
+<b>Control.</b>
+
+@defgroup FC Flight control
+@{
+*/
 /*
 The MIT License (MIT)
 
@@ -101,6 +108,7 @@ float underthrottlefilt = 0;
 
 float rxcopy[4];
 
+
 #ifdef BETAFLIGHT_RATES
 #define SETPOINT_RATE_LIMIT 1998.0f
 #define RC_RATE_INCREMENTAL 14.54f
@@ -141,10 +149,20 @@ static float calcBFRatesRad(int axis)
 }
 #endif
 
+
+/**
+Flight control
+
+Apply calculations for LEVELMODE, HORIZON, RACEMODE if on, or acro mode.
+
+INVERTED_ENABLE
+
+*/
 void control( void)
 {	
 
-// high-low rates switch 
+/// rates / expert mode
+
 float rate_multiplier = 1.0;
 	
 	if ( aux[RATES]  )
@@ -209,6 +227,7 @@ float rate_multiplier = 1.0;
 pid_precalc();	
 
 
+
 	// flight control
 
 	float rates[3];
@@ -222,6 +241,8 @@ pid_precalc();
     rates[1] = rate_multiplier * calcBFRatesRad(1);
     rates[2] = rate_multiplier * calcBFRatesRad(2);
 #endif
+
+  
         
 if (aux[LEVELMODE]&&!acro_override){
 	extern void stick_vector( float rx_input[] , float maxangle);
@@ -921,6 +942,7 @@ thrsum = 0;
 	
 }
 
+//**************************************************************************************************************
 
 #ifndef MOTOR_FILTER2_ALPHA
 #define MOTOR_FILTER2_ALPHA 0.3
@@ -951,7 +973,7 @@ float motorlpf( float in , int x)
 float hann_lastsample[4];
 float hann_lastsample2[4];
 
-// hanning 3 sample filter
+/// hanning 3 sample filter
 float motorfilter( float motorin ,int number)
 {
  	float ans = motorin*0.25f + hann_lastsample[number] * 0.5f +   hann_lastsample2[number] * 0.25f ;
@@ -976,6 +998,7 @@ float motorfilter( float motorin ,int number)
     float R = 0.1;
     #endif
 
+/// Prediction
 float  motor_kalman( float in , int x)   
 {    
 
@@ -997,12 +1020,12 @@ float  motor_kalman( float in , int x)
 return x_est;
 }	
 	
-	
-float clip_feedforward[4];
-// clip feedforward adds the amount of thrust exceeding 1.0 ( max) 
-// to the next iteration(s) of the loop
-// so samples 0.5 , 1.5 , 0.4 would transform into 0.5 , 1.0 , 0.9;
 
+float clip_feedforward[4];
+
+/// clip feedforward adds the amount of thrust exceeding 1.0 ( max) 
+/// to the next iteration(s) of the loop
+/// so samples 0.5 , 1.5 , 0.4 would transform into 0.5 , 1.0 , 0.9;	
 float clip_ff(float motorin, int number)
 {
 
@@ -1050,3 +1073,4 @@ float clip_ff(float motorin, int number)
     return in + out;
  }
 
+/// @}
