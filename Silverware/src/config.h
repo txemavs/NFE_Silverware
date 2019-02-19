@@ -8,21 +8,21 @@
 Configuration
 =============
 
-@note Universal pids are already loaded for 6mm and 7mm whoops by default.  
 Adjust pids in @ref pid.c file for any non whoop builds.
+
+@note Universal pids are already loaded for 6mm and 7mm whoops by default.  
 
 @see config.h "All configuration options"
 
 @defgroup BOARD Hardware selection.  
 @defgroup CONTROL Remote control. 
 @defgroup FLIGHT Flight mode. 
-@defgroup ADVANCED Advanced settings. 
+@defgroup ADVANCED Advanced settings.
 @{
-	@defgroup VOLTAGE Voltage settings. 
-	@defgroup FILTER Filter settings. 
-	@defgroup MOTOR Motor settings. 
-@}
-
+  @defgroup VOLTAGE Voltage settings. 
+  @defgroup FILTER Filter settings. 
+  @defgroup MOTOR Motor settings. 
+  @}
 @}
 */
 
@@ -30,11 +30,15 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #include "hardware.h"
   
 
+
+
+//**********************************************************************************************************************
 /// @addtogroup BOARD
 /// @{
+
 /// @name Flight controller hardware.
 /// @{
-
+/// 
 /// - **BWHOOP**: for bwhoop, bwhoop pro, E011C Santa Edition, and Beta FPV Lite.
 /// - **E011**: for E011
 /// - **H8mini_blue_board**: for the H8 mini flight controller with blue circuit board
@@ -44,23 +48,23 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 //#define E011
 //#define H8mini_blue_board
 //#define Alienwhoop_ZERO
+
 /// @}
+
 /// @}
 
 
-/// Select your preffered rate calculation format (define only one)
-#define SILVERWARE_RATES
-//#define BETAFLIGHT_RATES
 
-
+//**********************************************************************************************************************
 /// @addtogroup FLIGHT
 /// @{
-
-/// 
 /// 
 /// Exponential from 0.00 to 1.00 , 0 = no exp
 /// positive: less sensitive near center.
 
+/// Select your preffered rate calculation format (define **SILVERWARE_RATES** or **BETAFLIGHT_RATES**)
+#define SILVERWARE_RATES
+//#define BETAFLIGHT_RATES
 
 
 #ifdef SILVERWARE_RATES
@@ -74,17 +78,14 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #define ACRO_EXPO_YAW 0.00
 /// @}
 
-
 /// @name Level mode
 /// @{
-/// 
-/// 
 #define LEVEL_MAX_RATE 230.0    //Roll & Pitch axis
 #define LEVEL_MAX_ANGLE 66.0f ///< max angle for level mode.
 #define ANGLE_EXPO_ROLL 0.00 ///< Default 0.55
 #define ANGLE_EXPO_PITCH 0.0 ///< Default 0.0
 #define ANGLE_EXPO_YAW 0.00
-
+/// @}
 #endif
 
 #ifdef BETAFLIGHT_RATES
@@ -99,22 +100,32 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 #define BF_EXPO_YAW 0.00
 #endif
 
-/// @}
 
 /// @name Dual rates
+/// @{
 /// Low rates multiplier if @ref RATES are assigned to a channel.
 #define LOW_RATES_MULTI 0.70f
+/// @}
 
 /// @name Sticks dead band
+/// @{
 /// Transmitter stick adjustable deadband for roll/pitch/yaw.
 /// 01f = 1% of stick range - comment out to disable
 #define STICKS_DEADBAND .002f
 /// @}
+///
+/// @}
 
+
+
+
+
+//**********************************************************************************************************************
 /// @addtogroup CONTROL
 /// @{
-/// @name Radio protocol.
 ///
+/// @name Radio protocol.
+/// @{
 /// - Alienwhoop_ZERO: 
 ///   + **RX_SBUS**
 /// - Spektrum: 
@@ -128,11 +139,11 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 ///
 /// Define only one:
 #define RX_BAYANG_BLE_APP
-
+/// @}
 
 /// @name Transmitter
 ///
-/// - **USE_STOCK_TX**: Toy transmitter.
+/// - Toy transmitter: **USE_STOCK_TX**
 /// - Deviation: **USE_DEVO**
 /// - Multiprotocol: **USE_MULTI**
 ///
@@ -219,9 +230,10 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// @}
 
 
+
+
+
 //**********************************************************************************************************************
-//***********************************************VOLTAGE SETTINGS*******************************************************
-/// 
 /// @addtogroup VOLTAGE
 /// @{
 
@@ -265,17 +277,19 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// Automatic voltage telemetry correction factor.
 /// Change the values if voltage telemetry is inaccurate.
 ///@name Telemetry calibration
+/// @{
 #define ACTUAL_BATTERY_VOLTAGE 4.20
 #define REPORTED_TELEMETRY_VOLTAGE 4.20
 /// @}
-
+/// 
 /// @}
+
+
+
 
 
 
 //**********************************************************************************************************************
-//***********************************************FILTER SETTINGS********************************************************
-
 /// @addtogroup FILTER
 /// @{
 // *************Select the appropriate filtering set for your craft's gyro, D-term, and motor output or select CUSTOM_FILTERING to pick your own values.  
@@ -331,9 +345,10 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// @}
 
 
-//**********************************************************************************************************************
-//***********************************************MOTOR OUTPUT SETTINGS**************************************************
 
+
+
+//**********************************************************************************************************************
 /// @addtogroup MOTOR
 /// @{
 // *************invert yaw pid for "PROPS OUT" configuration - This feature is switchable to "PROPS IN" when active with stick gesture DOWN-UP-DOWN, Save selection with DOWN-DOWN-DOWN
@@ -380,8 +395,10 @@ Adjust pids in @ref pid.c file for any non whoop builds.
 /// @}
 
 
+
+
+
 //**********************************************************************************************************************
-//***********************************************ADDITIONAL FEATURES****************************************************
 /// @addtogroup ADVANCED
 /// @{
 // *************lost quad beeps using motors (30 sec timeout) - pulses motors after timeout period to help find a lost model
