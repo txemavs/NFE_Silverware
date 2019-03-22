@@ -1,58 +1,3 @@
-/** 
-@file
-<b>STM32 acro firmware.</b>
- 
-@mainpage 
- 
-FC Firmware
-===========
-Silverware fork specially designed for Whoop style quads.
-
-Configuration
--------------
- See @ref CONFIG "Configuration page"
- - @ref HARDWARE "Harware."
- - @ref FLIGHT "Flight."
-  +  @ref FILTER "Filtering"
-  +  @ref PID "PID Profiles"
- - @ref CONTROL "Control."
- - @ref OPTIONS "Options" 
-  +  @ref VOLTAGE "Battery"
-  +  @ref ADVANCED "Advanced"
-  +  @ref MOTOR "Motors"
-
-
-
-Start points
-------------
- - @ref main "Main loop execution."
- - @ref control
- - @ref config.h "Configuration file"
- - @ref sixaxis.h
- - @ref gestures.h
-
-Features
---------
- - Acro mode and level mode
- - Auto-Bind feature.
- - PIDs tunable and storable via TX gestures
- - Telemetry via Bluetooth using SilverVISE
- - Telemetry using DEVO, Taranis and Bayang Telemetry Protocol
- - Well suitable for custom builds.
- - Switchable output to switch 'something' on and off during flight via TX (e.g. FPV gear)
- - Buzzer support for lost quad detection
- - Altitude Hold support.
- - Inverted flight capabilities
- 
-@note Files of this project should be assumed MIT licence unless otherwise noted.
-
-@see <a href='http://sirdomsen.diskstation.me/dokuwiki/doku.php'>Silverware Wiki</a> and 
-<a href='https://community.micro-motor-warehouse.com/t/notfastenuf-e011-bwhoop-silverware-fork/5501'>NotFastEnuf fork thread</a>
-
-@defgroup MAIN Main loop
-@{
-*/
-
 /*
 The MIT License (MIT)
 
@@ -78,17 +23,18 @@ THE SOFTWARE.
 */
 
 
+// STM32 acro firmware
+// files of this project should be assumed MIT licence unless otherwise noted
 
 
 #include "project.h"
-
+#include "defines.h"
 #include "led.h"
 #include "util.h"
 #include "sixaxis.h"
 #include "drv_adc.h"
 #include "drv_time.h"
 #include "drv_softi2c.h"
-#include "config.h"
 #include "drv_pwm.h"
 #include "drv_adc.h"
 #include "drv_gpio.h"
@@ -97,7 +43,6 @@ THE SOFTWARE.
 #include "drv_spi.h"
 #include "control.h"
 #include "pid.h"
-#include "defines.h"
 #include "drv_i2c.h"
 #include "drv_softi2c.h"
 #include "drv_serial.h"
@@ -109,7 +54,6 @@ THE SOFTWARE.
 #include <stdio.h>
 #include <math.h>
 #include <inttypes.h>
-
 
 #ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
 #include "drv_softserial.h"
@@ -139,15 +83,14 @@ extern void flash_load( void);
 extern void flash_hard_coded_pid_identifier(void);
 
 
-/// Looptime in seconds.
+// looptime in seconds
 float looptime;
-/// Filtered battery in volts.
-float vbattfilt = 0.0; 
-/// Full battery volts.
+// filtered battery in volts
+float vbattfilt = 0.0;
 float vbatt_comp = 4.2;
-/// Voltage reference for vcc compensation.
+// voltage reference for vcc compensation
 float vreffilt = 1.0;
-/// Average of all motors.
+// average of all motors
 float thrfilt = 0;
 
 unsigned int lastlooptime;
@@ -156,15 +99,20 @@ int lowbatt = 1;
 
 //int minindex = 0;
 
-/// Holds the main four channels, roll, pitch , yaw , throttle
+// holds the main four channels, roll, pitch , yaw , throttle
 float rx[4];
 
-/// Holds auxilliary channels.
-/// The last 2 are always on and off respectively.
+// holds auxilliary channels
+// the last 2 are always on and off respectively
 char aux[AUXNUMBER] = { 0 ,0 ,0 , 0 , 0 , 0};
 char lastaux[AUXNUMBER];
-/// If an aux channel has just changed
+// if an aux channel has just changed
 char auxchange[AUXNUMBER];
+// analog version of each aux channel
+float aux_analog[AUXNUMBER];
+float lastaux_analog[AUXNUMBER];
+// if an analog aux channel has just changed
+char aux_analogchange[AUXNUMBER];
 
 // bind / normal rx mode
 extern int rxmode;
@@ -176,6 +124,7 @@ int in_air;
 int armed_state;
 int arming_release;
 int binding_while_armed = 1;
+float lipo_cell_count = 1;
 
 //Experimental Flash Memory Feature
 int flash_feature_1 = 0;
@@ -194,7 +143,6 @@ static void setup_4way_external_interrupt(void);
 #endif									   
 int random_seed = 0;
 
-/// Execution.
 int main(void)
 {
 	
@@ -259,30 +207,48 @@ aux[CH_AUX1] = 1;
 #endif
 
 
-	
+#ifdef USE_ANALOG_AUX
+  // saves initial pid values - after flash loading
+  pid_init();
+#endif
+
+
 	rx_init();
 
 	
 int count = 0;
 	
-while ( count < 64 )
+while ( count < 5000 )
 {
-	vbattfilt += adc_read(0);
-	delay(1000);
+	float bootadc = adc_read(0)*vreffilt;
+	lpf ( &vreffilt , adc_read(1)  , 0.9968f);
+	lpf ( &vbattfilt , bootadc , 0.9968f);
 	count++;
 }
+
+#ifndef LIPO_CELL_COUNT
+for ( int i = 6 ; i > 0 ; i--)
+{
+		float cells = i;
+		if (vbattfilt/cells > 3.7f)
+		{	
+			lipo_cell_count = cells;
+			break;
+		}
+}
+#else
+		lipo_cell_count = (float)LIPO_CELL_COUNT;
+#endif
+	
 #ifdef RX_BAYANG_BLE_APP
    // for randomising MAC adddress of ble app - this will make the int = raw float value        
     random_seed =  *(int *)&vbattfilt ; 
     random_seed = random_seed&0xff;
 #endif
- vbattfilt = vbattfilt/64;	
-// startvref = startvref/64;
-
 	
 #ifdef STOP_LOWBATTERY
 // infinite loop
-if ( vbattfilt < (float) 3.3f) failloop(2);
+if ( vbattfilt/lipo_cell_count < 3.3f) failloop(2);
 #endif
 
 
@@ -382,7 +348,7 @@ if ( liberror )
 		// ( or they can use a single filter)		
 		lpf ( &thrfilt , thrsum , 0.9968f);	// 0.5 sec at 1.6ms loop time	
 
-        static float vbattfilt_corr = 4.2;
+        float vbattfilt_corr = 4.2f * lipo_cell_count;
         // li-ion battery model compensation time decay ( 18 seconds )
         lpf ( &vbattfilt_corr , vbattfilt , FILTERCALC( 1000 , 18000e3) );
 	
@@ -713,6 +679,5 @@ void EXTI4_15_IRQHandler(void)
 }
 #endif
 
-///@}
 
 

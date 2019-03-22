@@ -35,17 +35,15 @@ THE SOFTWARE.
 
 #include "binary.h"
 #include "drv_spi.h"
-
 #include "project.h"
 #include "xn297.h"
 #include "drv_time.h"
 #include <stdio.h>
-#include "config.h"
 #include "defines.h"
-
 #include "rx_bayang.h"
-
 #include "util.h"
+
+
 #define RX_MODE_BIND RXMODE_BIND
 #define RX_MODE_NORMAL RXMODE_NORMAL
 
@@ -64,7 +62,7 @@ THE SOFTWARE.
 // You can use letters A to Z, numbers 0 to 9 and some special characters like # / \ - _ etc.
 // Please use only caps lock letters because name is not case sensitive. Avoid using blanks in name!
 
-#define MY_QUAD_NAME "SANTA"
+#define MY_QUAD_NAME "BWHOOP"
 
 // MY_QUAD_ID defines unique ID for MAC address. Leave 127 or replace it with any other value between 0 and 255.
 // Use ONLY values between 0 and 255!
@@ -170,6 +168,9 @@ extern float rx[4];
 extern char aux[AUXNUMBER];
 extern char lastaux[AUXNUMBER];
 extern char auxchange[AUXNUMBER];
+extern float aux_analog[AUXNUMBER];
+extern float lastaux_analog[AUXNUMBER];
+extern char aux_analogchange[AUXNUMBER];
 
 char lasttrim[4];
 
@@ -985,6 +986,12 @@ float packettodata( int *  data)
 	return ( ( ( data[0]&0x0003) * 256 + data[1] ) - 512 ) * 0.001953125 ;	
 }
 
+float bytetodata(int byte)
+{
+    //return (byte - 128) * 0.0078125; // -1 to 1
+    return byte * 0.00390625; // 0 to 1
+}
+
 
 static int decodepacket( void)
 {
@@ -1030,20 +1037,41 @@ char trims[4];
 				      }
 #else			
 // this share the same numbers to the above CH_PIT_TRIM etc		 					
+					aux[CH_INV] = (rxdata[3] & 0x80) ? 1 : 0; // inverted flag
 					aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;
 												
 					aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;						
 #endif
 							
-				aux[CH_INV] = (rxdata[3] & 0x80)?1:0; // inverted flag
 							
 			    aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;
 
+#ifdef USE_ANALOG_AUX
+			    aux[CH_EXPERT] = (rxdata[1] > 0x7F) ? 1 : 0;
+#else
 			    aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;
+#endif
 
 			    aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;
 
 			    aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel
+
+#ifdef USE_ANALOG_AUX
+                // Assign all analog versions of channels based on boolean channel data
+                for (int i = 0; i < AUXNUMBER - 2; i++)
+                {
+                  if (i == CH_ANA_AUX1)
+                    aux_analog[CH_ANA_AUX1] = bytetodata(rxdata[1]);
+                  else if (i == CH_ANA_AUX2)
+                    aux_analog[CH_ANA_AUX2] = bytetodata(rxdata[13]);
+                  else
+                    aux_analog[i] = aux[i] ? 1.0 : 0.0;
+                  aux_analogchange[i] = 0;
+                  if (lastaux_analog[i] != aux_analog[i])
+                    aux_analogchange[i] = 1;
+                  lastaux_analog[i] = aux_analog[i];
+                }
+#endif
 
 							if (aux[LEVELMODE]){
 								if (aux[RACEMODE] && !aux[HORIZON]){
@@ -1112,7 +1140,11 @@ void checkrx(void)
 		    {		// rx startup , bind mode
 			    xn_readpayload(rxdata, 15);
 
+#ifdef USE_ANALOG_AUX
+			    if (rxdata[0] == 162)
+#else
 			    if (rxdata[0] == 164)
+#endif
 			      {	// bind packet
 				      rfchannel[0] = rxdata[6];
 				      rfchannel[1] = rxdata[7];
@@ -1203,7 +1235,7 @@ unsigned long temptime = gettime();
 		{
 			unsigned int temp = time - lastrxtime ;
 
-			if ( temp > 1000 && ( temp - (PACKET_OFFSET) )/((unsigned int) PACKET_PERIOD) >= (skipchannel + 1) ) // WARNING FIX
+			if ( temp > 1000 && ( temp - (PACKET_OFFSET) )/((int) PACKET_PERIOD) >= (skipchannel + 1) ) 
 			{
 				nextchannel();
 #ifdef RXDEBUG				

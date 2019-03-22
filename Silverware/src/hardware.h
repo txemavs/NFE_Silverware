@@ -1,9 +1,10 @@
 
+#include "targets.h"
+
+
 // HARDWARE PINS SETTING
 //
 
-//NFE NOTES:  Most of the target related pin assignments are now being staged at the bottom of config.h 
-//in preparation of being moved to seperate target files.
 
 // do not change hardware pins below
 // make sure you don't set SWDIO or SWDCLK pins (programming pins)
@@ -78,12 +79,22 @@
 // esc driver = servo type signal for brushless esc
 // pins PA0 - PA11 , PB0 , PB1
 
+#ifdef BRUSHLESS_CONVERSION
+	#define BRUSHLESS_TARGET
+#endif
+
 //**DO NOT ENABLE ESC DRIVER WITH BRUSHED MOTORS ATTACHED**
 
-#define USE_PWM_DRIVER
-//#define USE_ESC_DRIVER
-//#define USE_DSHOT_DMA_DRIVER
-//#define USE_DSHOT_DRIVER_BETA
+#ifdef BRUSHLESS_TARGET
+	#define USE_DSHOT_DMA_DRIVER
+	//#define USE_DSHOT_DRIVER_BETA
+	//#define USE_ESC_DRIVER
+#else
+	#define USE_PWM_DRIVER
+#endif
+
+
+
 
 
 //FC must have MOSFETS and motor pulldown resistors removed. MAY NOT WORK WITH ALL ESCS

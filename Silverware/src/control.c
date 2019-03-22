@@ -1,10 +1,3 @@
-/**
-@file
-<b>Control.</b>
-
-@defgroup FC Flight control
-@{
-*/
 /*
 The MIT License (MIT)
 
@@ -33,7 +26,6 @@ THE SOFTWARE.
 #include <math.h>
 
 #include "pid.h"
-#include "config.h"
 #include "util.h"
 #include "drv_pwm.h"
 #include "control.h"
@@ -44,7 +36,6 @@ THE SOFTWARE.
 #include "drv_fmc.h"
 #include "flip_sequencer.h"
 #include "gestures.h"
-#include "defines.h"
 #include "led.h"
 
 
@@ -80,6 +71,8 @@ extern float looptime;
 
 extern char auxchange[AUXNUMBER];
 extern char aux[AUXNUMBER];
+extern float aux_analog[AUXNUMBER];
+extern char aux_analogchange[AUXNUMBER];
 
 extern int ledcommand;
 extern int ledblink;
@@ -107,7 +100,6 @@ float overthrottlefilt = 0;
 float underthrottlefilt = 0;
 
 float rxcopy[4];
-
 
 #ifdef BETAFLIGHT_RATES
 #define SETPOINT_RATE_LIMIT 1998.0f
@@ -149,22 +141,15 @@ static float calcBFRatesRad(int axis)
 }
 #endif
 
-
-/**
-Flight control
-
-Apply calculations for LEVELMODE, HORIZON, RACEMODE if on, or acro mode.
-
-INVERTED_ENABLE
-
-*/
 void control( void)
 {	
 
-/// rates / expert mode
-
+// high-low rates switch 
 float rate_multiplier = 1.0;
-	
+
+#if (defined USE_ANALOG_AUX && defined ANALOG_RATE_MULT)
+	rate_multiplier = aux_analog[ANALOG_RATE_MULT];
+#else
 	if ( aux[RATES]  )
 	{		
 		
@@ -174,7 +159,7 @@ float rate_multiplier = 1.0;
 		rate_multiplier = LOW_RATES_MULTI;
 	}
 	// make local copy
-	
+#endif
 	
 #ifdef INVERTED_ENABLE	
     extern int pwmdir;
@@ -227,7 +212,6 @@ float rate_multiplier = 1.0;
 pid_precalc();	
 
 
-
 	// flight control
 
 	float rates[3];
@@ -241,8 +225,6 @@ pid_precalc();
     rates[1] = rate_multiplier * calcBFRatesRad(1);
     rates[2] = rate_multiplier * calcBFRatesRad(2);
 #endif
-
-  
         
 if (aux[LEVELMODE]&&!acro_override){
 	extern void stick_vector( float rx_input[] , float maxangle);
@@ -695,6 +677,50 @@ else
        		}
 
 
+// MIXER SCALING
+
+#ifdef BRUSHLESS_MIX_SCALING
+		#undef MIX_LOWER_THROTTLE
+		#undef MIX_INCREASE_THROTTLE
+		#undef MIX_LOWER_THROTTLE_3
+		#undef MIX_INCREASE_THROTTLE_3
+
+         static int mixScaling;
+         if (onground) mixScaling = 0;
+         // only enable once really in the air
+         else if (in_air) mixScaling = 1;
+         if (mixScaling) {
+						 //ledcommand=1;
+             float minMix = 1000.0f;
+             float maxMix = -1000.0f;
+             for (int i = 0; i<4; i++) {
+                 if (mix[i] < minMix) minMix = mix[i];
+                 if (mix[i] > maxMix) maxMix = mix[i];
+             }
+             float mixRange = maxMix - minMix;
+             float reduceAmount = 0.0f;
+             if (mixRange > 1.0f) {
+                 float scale = 1.0f / mixRange;
+                 for (int i = 0; i<4; i++)
+                     mix[i] *= scale;
+                 minMix *= scale;
+                 reduceAmount = minMix;
+             } else {
+                 if (maxMix > 1.0f)
+                     reduceAmount = maxMix - 1.0f;
+                 else if (minMix < 0.0f)
+                     reduceAmount = minMix;
+             }
+             if (reduceAmount != 0.0f)
+                 for (int i=0; i<4; i++)
+                     mix[i] -= reduceAmount;
+         }
+#endif            
+        					
+
+
+					
+
 #if ( defined MIX_LOWER_THROTTLE || defined MIX_INCREASE_THROTTLE)
 
 //#define MIX_INCREASE_THROTTLE
@@ -876,11 +902,32 @@ if ( overthrottle > 0.1f) ledcommand = 1;
 }
 #endif
 
-            
-            
-            
-thrsum = 0;		
+ 
+#ifdef MOTOR_MIN_COMMAND2    // for testing purposes:  scaling style min motor command.  scales up all mix outputs so lowest motor is at min command only when one drops below min
+		#ifdef BRUSHLESS_TARGET
+		// do nothing - idle set by DSHOT
+		#else
+		float motor_min_value = (float) MOTOR_MIN_COMMAND2 * 0.01f;
+		float motor_min_adjust = 0;
+		for (int i = 0; i<4; i++) {                      
+			if ( mix[i] < 0 ) mix[i] = 0;								 		//Clip all mixer value to 0 before scaling
+			if (mix[i] < (motor_min_value))    			        //Determine maximum adjustment necessary
+					{
+					float motor_min_adjust_temp = motor_min_value - mix[i];
+					if (motor_min_adjust_temp > motor_min_adjust) motor_min_adjust = motor_min_adjust_temp;
+					}
+		}
+		for (int i = 0; i<4; i++) { 											// Scale up all 4 motors by an equal amount if any command has dropped below min
+		mix[i] += motor_min_adjust;
+		}
+		#endif
+#endif
 				
+ 
+            
+thrsum = 0;		//reset throttle sum for voltage monitoring logic in main loop
+
+//Begin for-loop to send motor commands
 		for ( int i = 0 ; i <= 3 ; i++)
 		{			
 		           
@@ -888,6 +935,8 @@ thrsum = 0;
 		mix[i] = clip_ff(mix[i], i);
 		#endif
 
+			
+//***********************Motor Test Logic
 		#if defined(MOTORS_TO_THROTTLE) || defined(MOTORS_TO_THROTTLE_MODE)
 		#if defined(MOTORS_TO_THROTTLE_MODE) && !defined(MOTORS_TO_THROTTLE)
 		if(aux[MOTORS_TO_THROTTLE_MODE])
@@ -908,15 +957,32 @@ thrsum = 0;
 		#warning "MOTORS TEST MODE"
 		#endif
 		#endif
+//***********************End Motor Test Logic
 
-		#ifdef MOTOR_MIN_ENABLE
-		if (mix[i] < (float) MOTOR_MIN_VALUE)
-		{
-			mix[i] = (float) MOTOR_MIN_VALUE;
-		}
+
+//***********************Min Motor Command Logic
+		#ifdef MOTOR_MIN_COMMAND			// clipping style min motor command
+		#ifdef BRUSHLESS_TARGET
+		// do nothing - idle set by DSHOT
+		#else     //clipping style min motor command override
+		if (mix[i] < (float) MOTOR_MIN_COMMAND * 0.01f)  mix[i] = (float) MOTOR_MIN_COMMAND * 0.01f;
+		#endif
 		#endif
 		
-			
+		#ifdef MOTOR_MIN_COMMAND3   // for testing purposes:  mapping style min motor command.  remaps entire range of motor commands from user set min value to 1
+		#ifdef BRUSHLESS_TARGET
+		// do nothing - idle set by DSHOT
+		#else
+			float motor_min_value = (float) MOTOR_MIN_COMMAND3 * 0.01f;
+			if ( mix[i] < 0 ) mix[i] = 0;											//Clip all mixer values into 0 to 1 range before remapping
+			if ( mix[i] > 1 ) mix[i] = 1;	
+			mix[i] = motor_min_value + mix[i] * (1.0f - motor_min_value);
+		#endif
+#endif  
+//***********************End Min Motor Command Logic
+
+
+//***********************Send Motor PWM Command Logic			
 		#ifndef NOMOTORS
 		#ifndef MOTORS_TO_THROTTLE
 		//normal mode
@@ -931,18 +997,20 @@ thrsum = 0;
 		#warning "NO MOTORS"
 		tempx[i] = motormap( mix[i] );
 		#endif
+//***********************End Motor PWM Command Logic
 		
+//***********************Clip mmixer outputs (if not already done) before applying calculating throttle sum
 		if ( mix[i] < 0 ) mix[i] = 0;
 		if ( mix[i] > 1 ) mix[i] = 1;
 		thrsum+= mix[i];
 		}	
-		thrsum = thrsum / 4;
-		
-	}// end motors on
+// end of for-loop to send motor PWM commands
+		thrsum = thrsum / 4;		//calculate throttle sum for voltage monitoring logic in main loop		
+	}
+// end motors on
 	
 }
-
-//**************************************************************************************************************
+// end of control function
 
 #ifndef MOTOR_FILTER2_ALPHA
 #define MOTOR_FILTER2_ALPHA 0.3
@@ -973,7 +1041,7 @@ float motorlpf( float in , int x)
 float hann_lastsample[4];
 float hann_lastsample2[4];
 
-/// hanning 3 sample filter
+// hanning 3 sample filter
 float motorfilter( float motorin ,int number)
 {
  	float ans = motorin*0.25f + hann_lastsample[number] * 0.5f +   hann_lastsample2[number] * 0.25f ;
@@ -998,7 +1066,6 @@ float motorfilter( float motorin ,int number)
     float R = 0.1;
     #endif
 
-/// Prediction
 float  motor_kalman( float in , int x)   
 {    
 
@@ -1020,12 +1087,12 @@ float  motor_kalman( float in , int x)
 return x_est;
 }	
 	
-
+	
 float clip_feedforward[4];
+// clip feedforward adds the amount of thrust exceeding 1.0 ( max) 
+// to the next iteration(s) of the loop
+// so samples 0.5 , 1.5 , 0.4 would transform into 0.5 , 1.0 , 0.9;
 
-/// clip feedforward adds the amount of thrust exceeding 1.0 ( max) 
-/// to the next iteration(s) of the loop
-/// so samples 0.5 , 1.5 , 0.4 would transform into 0.5 , 1.0 , 0.9;	
 float clip_ff(float motorin, int number)
 {
 
@@ -1073,4 +1140,3 @@ float clip_ff(float motorin, int number)
     return in + out;
  }
 
-/// @}
